@@ -7,25 +7,26 @@ PP_ARGS = False, False #rotate, cast int
 DAY = 1
 TEST_DELIM = "---"
 FILE_DELIM = "\n"
-TESTS = """a,a///aa
+TESTS = """1abc2
+pqr3stu8vwx
+a1b2c3d4e5f
+treb7uchet///142
 """
+
 
 DEBUG = True
 
 
 def solve(data):
     count = 0
-
+    score = 0
     for row in data:
-        pass
         
-
+        a = findall("\d", row)
+        score += int(a[0] + a[-1])
         
-    
-
-    return count
-
-
+        
+    return score
 
 
 if __name__ == "__main__":
