@@ -87,16 +87,15 @@ def get_fits(maps, current, lowest=INF, d=0):
 
 def solve(data):
     count = 0
-    seed_seedings = list(map(int, data[0].replace("seeds: ", "").split()))
-
-    seed_range = set()
-
-    while seed_seedings:
-        start = seed_seedings.pop(0)
-        length = seed_seedings.pop(0)        
-        seed_range = seed_range.union(set(range(start, start+length)))
+    seedings = list(map(int, data[0].replace("seeds: ", "").split()))
 
     
+
+    ranges = []
+
+    for i, value in enumerate(seedings):
+
+        if
 
     
     maps = []
@@ -116,6 +115,7 @@ def solve(data):
 
     for s in seed_range:
         seed_locs.add(get_fits(deepcopy(maps), s))
+        print(seed_locs)
 
     return min(seed_locs)
     
