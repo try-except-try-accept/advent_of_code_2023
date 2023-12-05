@@ -46,15 +46,10 @@ humidity-to-location map:
 56 93 4///46"""
 
 DEBUG = False
-PROCS = 50
+PROCS = 8
 
 stages = ["seed", "soil", "fertilizer", "water", "light", "temp", "humidity", "location"]
 
-with open("loggy.txt", "w"):
-    pass
-
-
-memo = {}
 def create_logger():
     import multiprocessing, logging
     logger = multiprocessing.get_logger()
@@ -70,10 +65,7 @@ def create_logger():
         logger.addHandler(handler)
     return logger
 
-
-
-def return_to_seed(value, maps):
-    
+def return_to_seed(value, maps):    
     i = 0
     while i < len(maps):
         for this_range in maps[i]:
@@ -121,10 +113,10 @@ def test_locations(final_tests):
     logger.info('Starting pooling')
  
     test_location, end_location, maps, seed_ranges = final_tests
-    logger.info(f"This proc will iterate from {test_location} to {end_location}")
+    print(f"This proc will iterate from {test_location} to {end_location}")
     while test_location < end_location:
         seed = return_to_seed(test_location, maps)
-        print(f"Location {test_location} comes from seed {seed}")
+        #print(f"Location {test_location} comes from seed {seed}")
         for seed_range in seed_ranges:
             if seed in seed_range:                
                 return test_location
@@ -153,7 +145,7 @@ if __name__ == "__main__":
     p = PuzzleHelper(DAY, TEST_DELIM, FILE_DELIM, DEBUG, PP_ARGS)
     
     if p.check(TESTS, solve):
-        SEARCH_SPACE = 999999999
+        SEARCH_SPACE = 251346198
         puzzle_input = p.load_puzzle()
         puzzle_input = p.pre_process(puzzle_input, *PP_ARGS)
         print("FINAL ANSWER: ", solve(puzzle_input))
