@@ -48,6 +48,17 @@ DEBUG = False
 
 stages = ["seed", "soil", "fertilizer", "water", "light", "temp", "humidity", "location"]
 
+
+memo = {}
+
+def recurse_if_needed(maps, value, lowest, d):
+    key = hash(str(maps) + str(value) + str(lowest) + str(d))
+    new = memo.get(key)
+    if new is None:
+        new = get_fits(maps, value, lowest, d+1)
+        memo[key] = new
+    return new
+
 def get_fits(maps, current, lowest=INF, d=0):
 
     if current > lowest:  # prune
@@ -68,18 +79,18 @@ def get_fits(maps, current, lowest=INF, d=0):
     for this_range in this_map:
 
         p.bugprint("\t"*d, "checking range", this_range)
-        
-        dest, source, length = this_range
+        # swap destination and source
+        source, dest, length = this_range
         if source <= current <= source + length:            
             index = abs(current - source)
             p.bugprint("\t"*d, "FOUND! Corresponds to:", dest+index)
             value = dest + index
-            new = get_fits(maps, value, lowest, d+1)
+            new = recurse_if_needed(maps, value, lowest, d+1)
             value = min([new, value])
             found_fit = True
 
     if not found_fit:
-        value = get_fits(maps, value, lowest, d+1)
+        value = recurse_if_needed(maps, value, lowest, d+1)
         
 
     return value
@@ -87,18 +98,15 @@ def get_fits(maps, current, lowest=INF, d=0):
 
 def solve(data):
     count = 0
-    seedings = list(map(int, data[0].replace("seeds: ", "").split()))
-
-    
-
-    ranges = []
-
-    for i, value in enumerate(seedings):
-
-        if
-
+    seed_data = list(data[0][8:].split())
+    seed_ranges = []
+    while seed_data:
+        start, length = int(seed_data.pop(0)), int(seed_data.pop(0))
+        seed_ranges.append(range(start, start+length))
     
     maps = []
+
+    lowest_poss = INF
     for row in data[1:]:
         
         if not row.strip(): continue
@@ -108,17 +116,21 @@ def solve(data):
             maps.append([])
         else:           
             maps[-1].append(list(map(int, row.split())))
+            if maps[-1][1] <= lowest_poss:
+                lowest_poss = maps[-1][1]
 
     p.bugprint(maps)
 
-    seed_locs = set()
+    ## reverse the maps to go backwards
+    maps = reversed(maps)
 
-    for s in seed_range:
-        seed_locs.add(get_fits(deepcopy(maps), s))
-        print(seed_locs)
-
-    return min(seed_locs)
-    
+    test_location = lowest_poss
+    while True:
+        seed = return_to_seed(location)
+        print("Location {location} comes from seed {seed}")
+        for seed_range in seed_ranges:
+            if seed in seed_range:
+                return result
 
             
             
