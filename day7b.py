@@ -47,22 +47,22 @@ class Hand:
             sec_most_common_freq = freqs[1][1]
             sec_most_common_card = freqs[1][0]
             
-            if most_common_freq == 5 - jokers:
+            if most_common_freq >= 5 - jokers:
                 five_kind = most_common_card
             
-            elif most_common_freq == 4 - jokers:
+            elif most_common_freq >= 4 - jokers:
                 four_kind = most_common_card
             
-            elif most_common_freq == 3 - jokers:
-                jokers_left = (3 - most_common_freq) - jokers
-                if sec_most_common_freq == 2 - jokers_left:
+            elif most_common_freq >= 3 - jokers:
+                jokers_left = (3 - most_common_freq)
+                if sec_most_common_freq >= 2 - jokers_left:
                     full_house = (most_common_card, sec_most_common_card)
                 else:
                     three_kind = most_common_card
             
-            elif most_common_freq == 2 - jokers:
-                jokers_left = (2 - most_common_freq) - jokers
-                if sec_most_common_freq == 2 - jokers_left:
+            elif most_common_freq >= 2 - jokers:
+                jokers_left = (2 - most_common_freq)
+                if sec_most_common_freq >= 2 - jokers_left:
                     two_pairs = (most_common_card, sec_most_common_card)
                 else:
                     pairs = (most_common_card,)
