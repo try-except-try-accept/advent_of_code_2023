@@ -13,23 +13,22 @@ KK677 28
 KTJJT 220
 QQQJA 483///6440"""
 
-DEBUG = True
+DEBUG = False
 
 class Hand:
 
     def __init__(self, data):
-        print("My data is", data)
         data = data.split()
-        self.cards = data[0]
-        print(self.cards, "cards")
-        hand = Counter(self.cards)
+        #print(data[0], "Becomes", end="")
+        self.cards = [int(x) if x.isdigit() else "TJQKA".index(x)+10 for x in data[0]]
+        #print(self.cards)
         self.bid = int(data[1])
-        five_kind, four_kind, three_kind = False, False, False
+        five_kind, four_kind, three_kind = None, None, None
         full_house = None
         pairs, two_pairs = None, None
-        high = max([int(x) if x.isdigit() else "TJQKA".index(x)+10 for x in self.cards])
+        high = max(self.cards)
         
-        freqs = hand.most_common()
+        freqs = Counter(self.cards).most_common()
         try:
             most_common_freq = freqs[0][1]
             most_common_card = freqs[0][0]
@@ -47,7 +46,7 @@ class Hand:
                 if sec_most_common_freq == 2:
                     two_pairs = (most_common_card, sec_most_common_card)
                 else:
-                    pair = (most_common_card,) 
+                    pairs = (most_common_card,) 
         except IndexError:
             five_kind = most_common_card
 
@@ -60,40 +59,30 @@ class Hand:
                       "h":high}
 
     def __str__(self):
-        return f"{self.cards} {self.stats}"
+        stat = [key for key, stat in self.stats.items() if stat is not None]
+        return f"{self.cards} {stat}"
 
     def tie_break(self, other):
         for this_card, that_card in zip(self.cards, other.cards):
-            if this_card < that_card:
-                print(other, "stronger")
-                return str(other)
-            elif this_card > that_card:
-                print(self, "stronger")
-                return str(self)
-        print("The hands are completely equal.")
-        return None
-    
-    
-        
+            if this_card > that_card:
+                p.bugprint(self, f"stronger because {this_card} vs {that_card}")
+                return True
+            elif this_card < that_card:
+                p.bugprint(other, f"stronger because {this_card} vs {that_card}")
+                return False       
 
     def __gt__(self, other):
-        print("Comparing", str(self), str(other))
+        p.bugprint("Comparing", str(self), str(other))
         for stat_id in self.stats.keys():
-            print(stat_id)
+            p.bugprint(stat_id)
             if self.stats[stat_id]:
                 if other.stats[stat_id]:
                     return self.tie_break(other)
-                print(self, "stronger")
-                return str(self)
+                p.bugprint(self, f"stronger because {stat_id}")
+                return True
             elif other.stats[stat_id]:
-                print(other, "stronger")
-                return str(other)
-
-    def __lt__(self, other):
-        return other.__gt__(self)
-                
-
-
+                p.bugprint(other, f"stronger because {stat_id}")
+                return False
 
 def solve(data):
 
@@ -102,14 +91,12 @@ def solve(data):
 
     ## order data
     hands = sorted([Hand(row) for row in data])
-    for h in hands:
-        print(str(h))
-
+    
     ## calculate 
     for i, hand in enumerate(hands):
         rank = i + 1
         winnings += (rank * hand.bid)
-        print(rank, "*", hand.bid)
+        p.bugprint(rank, "*", hand.bid)
     
 
     return winnings
