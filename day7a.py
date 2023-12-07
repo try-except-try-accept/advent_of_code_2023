@@ -18,65 +18,98 @@ DEBUG = True
 class Hand:
 
     def __init__(self, data):
+        print("My data is", data)
         data = data.split()
-        self.hand = Counter(data[0])
+        self.cards = data[0]
+        print(self.cards, "cards")
+        hand = Counter(self.cards)
         self.bid = int(data[1])
-        self.five_kind, self.four_kind, self.three_kind = False, False, False
-        self.pairs = None
-        self.high = max(data, key=lambda x: int(x, 16))
-
-        freqs = self.hand.most_common()
+        five_kind, four_kind, three_kind = False, False, False
+        full_house = None
+        pairs, two_pairs = None, None
+        high = max([int(x) if x.isdigit() else "TJQKA".index(x)+10 for x in self.cards])
+        
+        freqs = hand.most_common()
         try:
             most_common_freq = freqs[0][1]
             most_common_card = freqs[0][0]
-            sec_most_common_freq = freqs[1][0]
-            sec_most_common_card = freqs[1][1]
+            sec_most_common_freq = freqs[1][1]
+            sec_most_common_card = freqs[1][0]
 
             if most_common_freq == 4:
-                self.four_kind = most_common_card
+                four_kind = most_common_card
             elif most_common_freq == 3:
                 if sec_most_common_freq == 2:
-                    self.full_house = (most_common_card, sec_most_common_card)
+                    full_house = (most_common_card, sec_most_common_card)
                 else:
-                    self.three_kind = most_common_card
+                    three_kind = most_common_card
             elif most_common_freq == 2:
                 if sec_most_common_freq == 2:
-                    self.pairs = (most_common_card, sec_most_common_card)
+                    two_pairs = (most_common_card, sec_most_common_card)
                 else:
-                    self.pairs = (most_common_card,)
-            
+                    pair = (most_common_card,) 
         except IndexError:
-            self.five_kind = most_common_card
+            five_kind = most_common_card
+
+        self.stats = {"5":five_kind,
+                      "4":four_kind,
+                      "f":full_house,
+                      "3":three_kind,
+                      "pp":two_pairs,
+                      "p":pairs,
+                      "h":high}
+
+    def __str__(self):
+        return f"{self.cards} {self.stats}"
+
+    def tie_break(self, other):
+        for this_card, that_card in zip(self.cards, other.cards):
+            if this_card < that_card:
+                print(other, "stronger")
+                return str(other)
+            elif this_card > that_card:
+                print(self, "stronger")
+                return str(self)
+        print("The hands are completely equal.")
+        return None
+    
+    
         
 
-def order(data) -> dict:
+    def __gt__(self, other):
+        print("Comparing", str(self), str(other))
+        for stat_id in self.stats.keys():
+            print(stat_id)
+            if self.stats[stat_id]:
+                if other.stats[stat_id]:
+                    return self.tie_break(other)
+                print(self, "stronger")
+                return str(self)
+            elif other.stats[stat_id]:
+                print(other, "stronger")
+                return str(other)
 
-    data = [Hand(row) for row in data]
+    def __lt__(self, other):
+        return other.__gt__(self)
+                
 
-    
-
-    return sorted(data)
 
 
 def solve(data):
-    data = "\n".join(data)
 
-    for orig, hexify in zip("AKQJT", "EDCBA"):
-        data = data.replace(orig, hexify)
-
-    data = "\n".join(data)
     
     winnings = 0
 
     ## order data
-    hands = order(data)
+    hands = sorted([Hand(row) for row in data])
+    for h in hands:
+        print(str(h))
 
     ## calculate 
     for i, hand in enumerate(hands):
         rank = i + 1
-        winnings += rank * hand["bid"]
-
-        
+        winnings += (rank * hand.bid)
+        print(rank, "*", hand.bid)
     
 
     return winnings
