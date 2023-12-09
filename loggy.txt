@@ -1,0 +1,46 @@
+[2023-12-05 21:07:14,241| INFO| SpawnPoolWorker-23] Starting pooling
+[2023-12-05 21:07:14,241| INFO| SpawnPoolWorker-24] Starting pooling
+[2023-12-05 21:07:14,246| INFO| SpawnPoolWorker-13] child process calling self.run()
+[2023-12-05 21:07:14,246| INFO| SpawnPoolWorker-13] Starting pooling
+[2023-12-05 21:07:14,247| INFO| SpawnPoolWorker-15] child process calling self.run()
+[2023-12-05 21:07:14,247| INFO| SpawnPoolWorker-15] Starting pooling
+[2023-12-05 21:07:14,247| INFO| SpawnPoolWorker-14] child process calling self.run()
+[2023-12-05 21:07:14,248| INFO| SpawnPoolWorker-14] Starting pooling
+[2023-12-05 21:07:14,249| INFO| SpawnPoolWorker-18] child process calling self.run()
+[2023-12-05 21:07:14,249| INFO| SpawnPoolWorker-19] child process calling self.run()
+[2023-12-05 21:07:14,249| INFO| SpawnPoolWorker-17] child process calling self.run()
+[2023-12-05 21:07:14,249| INFO| SpawnPoolWorker-18] Starting pooling
+[2023-12-05 21:07:14,249| INFO| SpawnPoolWorker-16] child process calling self.run()
+[2023-12-05 21:07:14,250| INFO| SpawnPoolWorker-19] Starting pooling
+[2023-12-05 21:07:14,250| INFO| SpawnPoolWorker-17] Starting pooling
+[2023-12-05 21:07:14,250| INFO| SpawnPoolWorker-16] Starting pooling
+[2023-12-05 21:07:14,250| INFO| SpawnPoolWorker-18] Starting pooling
+[2023-12-05 21:07:14,252| INFO| SpawnPoolWorker-21] child process calling self.run()
+[2023-12-05 21:07:14,252| INFO| SpawnPoolWorker-22] child process calling self.run()
+[2023-12-05 21:07:14,253| INFO| SpawnPoolWorker-23] child process calling self.run()
+[2023-12-05 21:07:14,254| INFO| SpawnPoolWorker-24] child process calling self.run()
+[2023-12-05 21:13:22,139| INFO| SpawnPoolWorker-17] process shutting down
+[2023-12-05 21:13:22,139| INFO| SpawnPoolWorker-16] process shutting down
+[2023-12-05 21:13:22,139| INFO| SpawnPoolWorker-17] process exiting with exitcode 0
+[2023-12-05 21:13:22,139| INFO| SpawnPoolWorker-21] process shutting down
+itcode 0
+[2023-12-05 21:13:22,139| INFO| SpawnPoolWorker-22] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-21] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-22] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-20] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-20] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-23] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-23] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-24] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-24] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-19] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-14] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-19] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-18] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-13] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-15] process shutting down
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-18] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-13] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-15] process exiting with exitcode 0
+[2023-12-05 21:13:22,140| INFO| SpawnPoolWorker-14] process exiting with exitcode 0
+[2023-12-05 21:13:22,145| INFO| MainProcess] process shutting down
