@@ -5,7 +5,72 @@ from collections import Counter
 GREEDY = "\[.+\]" # greedily match anything between [ and ]
 LAZY = "\[.+?\]"  # lazily match anything between [ and ]
 
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.connections = set()
 
+    def add_connection(self, neighbour, weight):
+        self.connections.add((neighbour, weight))
+
+    def find_path_to(self, target, backtrack=0):        
+        explore = [self]
+        visited = Counter()
+        cost = 0
+        path = [0]
+        # while somewhere left to explore and haven't reached target
+        while len(explore) and node != target:
+            # next node to explore
+            node, weight = explore.pop(0)           
+
+            # count neighbours to visit
+            poss_paths = 0
+            for neighbour in connections:                
+                if visited[neighbour] < backtrack:
+                    explore.append(neighbour)
+                    poss_paths += 1
+
+            # if has neighbours, add weight
+            path.append(weight)
+                
+            
+                
+
+            
+            
+          
+                         
+
+
+def get_or_make_node(key, graph):
+    node = graph.get(key)
+    if node is None:
+        node = Node(key)
+        graph[key] = node
+    return node
+
+def alphanum_only(data):
+    return "".join(d for d in data if d.isalpha() or d.isdigit())
+
+def create_graph(self, data, sep_node, sep_conns, weight_format=None):
+    
+    graph = {}
+    
+    for row in data:
+        root, conns = row.split(sep_node)
+        conns = conns.split(sep_cons)
+
+        node = get_or_make_node(alphanum_only(root), graph)
+        for c in conns:
+            weight = None
+            if weight_format:
+                weight = search(weight_format, c).group()
+            
+            neighbour = get_or_make_node(alphanum_only(c), graph, weight)
+            node.add_connection(neighbour)
+
+    return graph
+        
 
 class PuzzleHelper:
 
