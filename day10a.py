@@ -34,7 +34,7 @@ GO_LEFT = (0, -1)
 GO_RIGHT = (0, 1)
 
 
-DEBUG = False
+debug = False
 HEIGHT, WIDTH = None, None
 PIPES = "|-LJ7F.S"
 
@@ -87,7 +87,7 @@ BUFFER = 3
 first_tile = "F"
 
 def print_paths(paths, viewport, colour_map):
-    if not DEBUG:   return
+    if not debug:   return
 
     s = ""
 
@@ -106,7 +106,11 @@ def print_paths(paths, viewport, colour_map):
         print(row.strip())
     
 def solve(data):
+    global debug
     count = 0
+    debug = False
+
+    path_sym = 0
 
     tiles = [list(row) for row in data]
 
@@ -162,8 +166,6 @@ def solve(data):
 
             for (y_shift, x_shift), allowed in NEIGH_COMBS[tile].items():
 
-                print(x_shift, y_shift, allowed)
-                
                 if not allowed:
                     continue
                 
@@ -183,8 +185,11 @@ def solve(data):
                         if this_move in allowed:
                             path_count = len(exp[i])
                             exp[i].append((new_y, new_x))
-                            path_sym = chr(path_count + 32)
-                            paths[new_y][new_x] = path_sym
+
+                            path_sym += 1
+                            while chr(path_sym).isprintable() == False:
+                                path_sym += 1
+                            paths[new_y][new_x] = chr(path_sym)
                             colour_map[new_y][new_x] = RED
                             visited.add((new_y, new_x))
                             no_path = False
@@ -201,11 +206,13 @@ def solve(data):
                     p.bugprint("Off grid vert")
             
         if no_path:
+            debug = True
+            print_paths(paths, viewport, colour_map)
             return path_count
 
 
 if __name__ == "__main__":
-    p = PuzzleHelper(DAY, TEST_DELIM, FILE_DELIM, DEBUG, PP_ARGS)
+    p = PuzzleHelper(DAY, TEST_DELIM, FILE_DELIM, debug, PP_ARGS)
 
     if p.check(TESTS, solve):
         first_tile = "J"
