@@ -21,8 +21,10 @@ TESTS = """#.##..##.
 #####.##.
 #####.##.
 ..##..###
-#....#..#///aa
+#....#..#///405
 """
+
+### guessed: 14862 too low
 
 DEBUG = True
 
@@ -43,45 +45,138 @@ def rotate(data):
 
 
 
-def find_symmetry(pattern):
+def check_reflection(pattern):
     reflect_stack = []
-    for y, row in enumerate(pattern[1:]):
-        if row == pattern[y-1]:
-            print("row", row)
-            print("pattern", pattern)
-            return y
+    reflect_line = None
 
+    # once we've started to pop, every row must then pop
+    reflecting = True
+    for y, row in enumerate(pattern):
+        row = int("".join(row).replace("#", "1").replace(".", "0"), 2)
+        print("processing", row)
+        if reflect_stack and row == reflect_stack[-1]:
+            reflect_stack.pop(-1)
+            reflecting = True
+            if not reflect_line:
+                reflect_line = y
+                
+        else:
+            reflect_stack.append(row)
+            reflecting = True
+        print(reflect_stack)
+
+    if len(reflect_stack) > 1:
+        reflect_line = None
+    print("Reflects at", reflect_line)
+
+    
+    return reflect_line
+
+def find_symmetry(pattern, cols, rows):
+    for i in range(2):
+        sym = check_reflection(pattern)
+
+        print("Found reflection line at", sym)
+        if sym is not None:                
+            if i % 2 == 1:
+                cols += sym
+                return cols, rows
+            else:
+                rows += sym
+                return cols, rows
+
+        pattern = rotate(pattern)
+    
 
 def solve(data):
     total = 0
 
     data = "\n".join(data)
 
-    columns, rows = 0, 0
+    cols, rows = 0, 0
     for pattern in data.split("\n\n"):
+        print()
 
         pattern = pattern.splitlines()
-        for i in range(4):
-            sym = find_symmetry(pattern)
+        cols, rows = find_symmetry(pattern, cols, rows)
 
-            print("Found reflection line at", sym)
-            if sym is not None:                
-                if i % 2 == 1:
-                    columns += sym - 1
-                else:
-                    rows += sym - 1
-                break
-                
-            pattern = rotate(pattern)
+    print(cols, rows)
 
-    return columns + (100 * rows)
+    return cols + (100 * rows)
+
+def tests():
+
+    tests = ['''
+###.#.#
+##.#.#.
+
+.##.#.#
+####.#.
+
+.####.#
+#.##.#.
+
+.####.#
+##.##..
+
+#.#.##.
+.#..##.
+
+#.###..
+.##.#..
+
+.#.###..#
+..##.#..#
+
+.#.#.#.##.#.
+#.#.#.#..#.#''',
+
+             '''
+##
+##
+
+.#
+##
+##
+
+.#
+#.
+##
+##
+..
+
+..
+#.
+.#
+..
+..
+
+.#
+#.
+.#
+#.
+..
+..''']
+    for test_num, test_set in enumerate(tests):
+        for sym, puzzle in enumerate(test_set.strip().split("\n\n")):
+            print()
+            cols, rows = find_symmetry(puzzle.splitlines(), 0, 0)
+
+            if test_num % 2 == 0:
+                assert cols == sym + 1
+            else:
+                assert rows == sym + 1
+
+
+
+
 
 
 
 
 if __name__ == "__main__":
     p = PuzzleHelper(DAY, TEST_DELIM, FILE_DELIM, DEBUG, PP_ARGS)
-
+    tests()
     if p.check(TESTS, solve):
         puzzle_input = p.load_puzzle()
         puzzle_input = p.pre_process(puzzle_input, *PP_ARGS)
