@@ -3,7 +3,7 @@ from collections import Counter
 from helpers import PuzzleHelper
 
 PP_ARGS = False, False #rotate, cast int
-REP_REQ = 9
+REP_REQ = 7
 DAY = 14
 TEST_DELIM = "---"
 FILE_DELIM = "\n"
@@ -30,6 +30,8 @@ O.#..O.#.#
 # rotate right once
 # flip back
 
+
+TARGET = 1000000000
 
 cycle = '''OO.
 #O#
@@ -107,8 +109,8 @@ def rotate(data):
 def display(data):
     if not debug:   return
     for row in data:
-        print("".join(row))
-    print()
+        p.bugprint("".join(row))
+    p.bugprint()
 
 
 def shift(data, west):
@@ -134,8 +136,6 @@ def shift_chunk(row, west=False):
 
     rollies = row.count("O")
     blanks = len(row) - rollies
-
-    
     right = (blanks * ".") + (rollies * "O")
     left =  (rollies * "O") + (blanks * ".")
     
@@ -145,8 +145,8 @@ def check(data):
     
     if cycle:
         test = cycle.pop(0).splitlines()
-        print("Checking", data)
-        print("Against", test)
+        p.bugprint("Checking", data)
+        p.bugprint("Against", test)
         assert data == test
 
 
@@ -157,46 +157,45 @@ def sum_load(data):
         this_row = 0
         for i, char in enumerate(row):
             this_row += mul * (1 if char == "O" else 0)
-        
-
         total += this_row
     return total
 
 
 
+def rep_detected(patt):
+    patt = [str(i) for i in patt]
+    last_n = "".join(patt[-REP_REQ:])
+    return "".join(patt).count(last_n) > 1
 
-
-def detect_subsequence(seq):
-
-    ## go through each value in the sequence
+def identify_subsequence(loads, seq, sub_prefix, sub_repeat_idx):
+    p.bugprint("cycle", sub_repeat_idx)
+    offset = 0
+    pattern = []
+    recording = False
+    ## go through every value
     for i in range(len(seq)):
-        ## compare against every other value - check for match
-        for j in range(i+1, len(seq)):
-
-        ## if match is found... ?
-            if seq[i] == seq[j]:
-                ## record this index as offset
-                offset = i
-                patt_length = 0
-                ## scan forward and check while match is found
-                while j+patt_length < len(seq) and seq[i+patt_length] == seq[j+patt_length]:
-                    patt_length += 1
-                       
-                if patt_length > 10:
-                    print("in", seq)
-                    print(f"found offset {offset} and Patt length {patt_length}")
-                    return offset , patt_length
-    return None, None
+    
+        ## check if matches sub_prefix
+        if seq[i:i+len(sub_prefix)] == sub_prefix:
+            if recording:
+                return offset, pattern
+            
+            recording = True
+        ## record every value until next sub_prefix
+        if recording:
+            pattern.append(loads[i])
+        else:
+            offset += 1
+                
 
 def solve(data):
    
     total = 0
     new = []
-
-    periods = []
+    hashes = []
     loads = []
 
-    for cycle in range(1000000000):
+    for cycle in range(TARGET):
 
         for rotations_needed, west in ((1, False),
                                              (0, True),
@@ -208,14 +207,10 @@ def solve(data):
 
             if rotations_needed:
                 check(data)
-            
-
 
             data = shift(data, west)
 
             check(data)
-            
-
 
             if rotations_needed:
                 for _ in range(4-rotations_needed):
@@ -224,51 +219,24 @@ def solve(data):
 
         display(data)
         load = sum_load(data)
-
-        
-                
+        hashes.append(hash("".join(data)))
         loads.append(load)
                 
         
-        if len(loads) > 50:
+        if len(loads) > REP_REQ and rep_detected(hashes):
+            sub_prefix = hashes[-REP_REQ:]
 
-            offset, patt_length = detect_subsequence(loads)
+            offset, pattern = identify_subsequence(loads, hashes, sub_prefix, cycle)
 
+            p.bugprint(hashes)
+            p.bugprint(f"Pattern prefix is {sub_prefix}")
+            p.bugprint(f"Pattern begins at {offset}")
+            p.bugprint(f"Pattern length is {len(pattern)}")
+            p.bugprint(f"Pattern: {pattern}")
 
-            if patt_length:
-                left = 1000000000 - cycle
-
-                more_patterns = left // pattern_length
-
-                
-                remain = left %  pattern_length
-
-
-                return loads[offset:][len(loads) % (more_patterns + remain)]
-
-                
-
-                
-
-            
-        
-
-        
+            return pattern[(TARGET-offset-1) % len(pattern)]
 
 
-   
-
-                
-
-                
-
-                       
-
- 
-
-
-
-    return total
 pattern_length = 7
 if __name__ == "__main__":
     p = PuzzleHelper(DAY, TEST_DELIM, FILE_DELIM, debug, PP_ARGS)
