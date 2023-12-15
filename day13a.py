@@ -26,152 +26,181 @@ TESTS = """#.##..##.
 
 ### guessed: 14862 too low
 
-DEBUG = True
+DEBUG = False
 
-def rotate(data):
+class Pattern:
 
-    new = [[] for i in range(len(data[0]))]
+    def __init__(self, data):
 
-    
-    # go through each row
-    for row in data:
-        # append each cell of this row to one column each
-        for i, cell in enumerate(row):
-            new[i].append(cell)
+        data = data.splitlines()
 
+        self.horiz = self.binarise(data)
+        self.vert = self.binarise(self.rotate(data))
 
-    return new
-
+    def binarise(self, data):
+        p.bugprint(type(data[0]))
+        return [int(row.replace("#", "1").replace(".", "0"), 2) for row in data]
 
 
 
-def check_reflection(pattern):
-    reflect_stack = []
-    reflect_line = None
+    def rotate(self, data):
 
-    # once we've started to pop, every row must then pop
-    reflecting = True
-    for y, row in enumerate(pattern):
-        row = int("".join(row).replace("#", "1").replace(".", "0"), 2)
-        print("processing", row)
-        if reflect_stack and row == reflect_stack[-1]:
-            reflect_stack.pop(-1)
-            reflecting = True
-            if not reflect_line:
-                reflect_line = y
-                
+        new = [[] for i in range(len(data[0]))]
+        # go through each row
+        for row in data:
+            # append each cell of this row to one column each
+            for i, cell in enumerate(row):
+                new[i] = [cell] + new[i]
+
+        return ["".join(row) for row in new]
+
+    def find_symmetry(self, horiz=False):
+
+        data = self.horiz if horiz else self.vert
+
+        if data[0] == data[1]:
+            return 1
+
+        stack = []
+        reflecting = False
+        line = None
+        p.bugprint("reflection finding in", data)
+        for y, row in enumerate(data):
+            if stack:
+                if row == stack[-1]:
+                    if not reflecting:
+                        line = y
+                        print("set line to", line)
+                        reflecting = True
+                        print("reflecting now")
+                    stack.pop(-1)
+
+                    if len(stack) == 0:
+                        return line
+                    continue
+                elif reflecting:
+                    print("Resetting stack")
+                    reflecting = False
+                    line = None
+            stack.append(row)
+            print(stack)
+
+        if line:
+            p.bugprint("symmetry found at", line)
+            return line
         else:
-            reflect_stack.append(row)
-            reflecting = True
-        print(reflect_stack)
+            raise NoSymmetryException("No symmetry found")
 
-    if len(reflect_stack) > 1:
-        reflect_line = None
-    print("Reflects at", reflect_line)
+class NoSymmetryException(Exception):
 
-    
-    return reflect_line
+    pass
 
-def find_symmetry(pattern, cols, rows):
-    for i in range(2):
-        sym = check_reflection(pattern)
 
-        print("Found reflection line at", sym)
-        if sym is not None:                
-            if i % 2 == 1:
-                cols += sym
-                return cols, rows
-            else:
-                rows += sym
-                return cols, rows
-
-        pattern = rotate(pattern)
-    
 
 def solve(data):
     total = 0
 
     data = "\n".join(data)
 
+    p.bugprint(data)
+    patterns = [Pattern(pat) for pat in data.split("\n\n")]
+
     cols, rows = 0, 0
-    for pattern in data.split("\n\n"):
-        print()
+    for pattern in patterns:
 
-        pattern = pattern.splitlines()
-        cols, rows = find_symmetry(pattern, cols, rows)
+        try:
+        
+            cols += pattern.find_symmetry()
+        except NoSymmetryException:
+            try:
+                rows += pattern.find_symmetry(horiz=True)
+            except NoSymmetryException:
+                print("no symmetry found")
+                print(pattern.horiz)
+                print(pattern.vert)
+                input()
 
-    print(cols, rows)
+    p.bugprint(cols, rows)
+    
 
     return cols + (100 * rows)
 
+
+
 def tests():
 
-    tests = ['''
-###.#.#
-##.#.#.
+    patterns = """##.#
+##.#
+....
+.#..
+#...///1///1
 
-.##.#.#
-####.#.
+###
+...
+.#.
+#.#
+...
+...///1///5
 
-.####.#
-#.##.#.
-
-.####.#
-##.##..
-
-#.#.##.
-.#..##.
-
-#.###..
-.##.#..
-
-.#.###..#
-..##.#..#
-
-.#.#.#.##.#.
-#.#.#.#..#.#''',
-
-             '''
 ##
-##
+..///0///1
 
-.#
-##
-##
+.#.##
+#.###///0///4
 
-.#
-#.
-##
-##
-..
+.#...##
+#....##
+....###///0///6
 
-..
-#.
-.#
-..
-..
+.#.#
+....
+#.##
+.###
+.###
+#.##
+....
+#.#.
+.#.#
+####
+....
+....
+####///1///11
 
-.#
-#.
-.#
-#.
-..
-..''']
-    for test_num, test_set in enumerate(tests):
-        for sym, puzzle in enumerate(test_set.strip().split("\n\n")):
-            print()
-            cols, rows = find_symmetry(puzzle.splitlines(), 0, 0)
+#.#..
+.....
+.....
+#....///0///4
 
-            if test_num % 2 == 0:
-                assert cols == sym + 1
-            else:
-                assert rows == sym + 1
+##..#
+.....
+.#..#
+.....///0///3
 
+...
+...
+#.#
+.#.
+.#.///1///1
 
+.#.
+...
+...
+#.#
+.#.
+.#.///1///5"""
+    
 
+    for test in patterns.split("\n\n"):
 
+        pattern, horiz, expected = test.split("///")
+        actual = Pattern(pattern).find_symmetry(horiz=bool(int(horiz)))
+        print("actual...", actual)
+        assert actual == int(expected)
+        print("passed")
 
-
+    input()
+    
+        
 
 
 if __name__ == "__main__":
