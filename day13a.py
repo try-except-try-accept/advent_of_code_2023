@@ -26,19 +26,18 @@ TESTS = """#.##..##.
 
 ### guessed: 14862 too low
 
-DEBUG = False
+DEBUG = True
 
 class Pattern:
 
     def __init__(self, data):
 
         data = data.splitlines()
-
+        self.orig = data
         self.horiz = self.binarise(data)
         self.vert = self.binarise(self.rotate(data))
 
     def binarise(self, data):
-        p.bugprint(type(data[0]))
         return [int(row.replace("#", "1").replace(".", "0"), 2) for row in data]
 
 
@@ -54,47 +53,78 @@ class Pattern:
 
         return ["".join(row) for row in new]
 
+
+
     def find_symmetry(self, horiz=False):
-
         data = self.horiz if horiz else self.vert
-
-        if data[0] == data[1]:
-            return 1
-
         stack = []
         reflecting = False
         line = None
         p.bugprint("reflection finding in", data)
+        sym_lines = []
         for y, row in enumerate(data):
+            print("compare row", row, 'stack', stack)
             if stack:
+                # does this row reflect?
                 if row == stack[-1]:
                     if not reflecting:
+                        # first instance so record..
                         line = y
-                        print("set line to", line)
+                        print("found los")
                         reflecting = True
-                        print("reflecting now")
+                        
                     stack.pop(-1)
-
-                    if len(stack) == 0:
-                        return line
                     continue
+
+                # doesn't reflect...
                 elif reflecting:
-                    print("Resetting stack")
+                    print("broken symmetry reset line")
                     reflecting = False
-                    line = None
+                    stack = []
+                    line = 0
+            elif reflecting:
+                return line
+                    
             stack.append(row)
-            print(stack)
+
 
         if line:
             p.bugprint("symmetry found at", line)
+
             return line
         else:
-            raise NoSymmetryException("No symmetry found")
+            return 0 # no symmetry found
+        
 
-class NoSymmetryException(Exception):
 
-    pass
+def show_symmetry(pattern, horiz, index):
 
+    if not DEBUG: return
+
+    num_labels = len(pattern[0]) if horiz else len(pattern)
+    labels = [str(hex(i)[2:]) for i in range(1, num_labels+1)]
+
+    sym_marker = list(labels)
+    sym_marker[index-1] = ">" if horiz else "v"
+    sym_marker[index] = "<" if horiz else "^"
+    print(sym_marker)
+    sym_marker = [" "  if thing not in "><^v" else thing for thing in sym_marker]
+    print(index)
+    print(sym_marker)
+
+    if horiz:
+        print(" ".join(labels))
+        print(" ".join(sym_marker))
+        for row in pattern:
+            print(row.replace("#", "██").replace(".", "  "))
+        print(" ".join(sym_marker))
+        print(" ".join(labels))
+
+    else:
+        while sym_marker:
+            print(labels.pop(0) + sym_marker.pop(0) + "".join(pattern.pop(0).replace("#", "██").replace(".", "  ")))
+
+    
 
 
 def solve(data):
@@ -104,24 +134,32 @@ def solve(data):
 
     p.bugprint(data)
     patterns = [Pattern(pat) for pat in data.split("\n\n")]
+    total = 0
 
     cols, rows = 0, 0
     for pattern in patterns:
+        vert_los = pattern.find_symmetry()
 
-        try:
+        cols += vert_los
+
+ 
+        horiz_los = pattern.find_symmetry(horiz=True)
+        rows += horiz_los
+
         
-            cols += pattern.find_symmetry()
-        except NoSymmetryException:
-            try:
-                rows += pattern.find_symmetry(horiz=True)
-            except NoSymmetryException:
-                print("no symmetry found")
-                print(pattern.horiz)
-                print(pattern.vert)
-                input()
+
+        if vert_los and horiz_los:
+            show_symmetry(pattern.orig, True, vert_los)
+
+            show_symmetry(pattern.orig, False, horiz_los)
+ 
+            input("multi los found")
+
+
 
     p.bugprint(cols, rows)
-    
+
+
 
     return cols + (100 * rows)
 
@@ -187,7 +225,7 @@ def tests():
 ...
 #.#
 .#.
-.#.///1///5"""
+.#.///1///5""" # <- deal with this test case
     
 
     for test in patterns.split("\n\n"):
@@ -196,9 +234,10 @@ def tests():
         actual = Pattern(pattern).find_symmetry(horiz=bool(int(horiz)))
         print("actual...", actual)
         assert actual == int(expected)
+        print(test)
         print("passed")
 
-    input()
+
     
         
 
