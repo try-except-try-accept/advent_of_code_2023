@@ -30,6 +30,20 @@ DEBUG = False
 DISPLAY_CUTOFF = 1000
 
 
+### refactor Beam as Ray class
+
+### Beam then becomes containing class
+
+### If Beam enters cached y, x, direction at any point
+
+    ### Total energy that beam will produce is known
+
+### If all rays in a beam have gone off grid
+
+    ### Return history of all rays in beam and add to cache - overall length of history = energy 
+
+
+
 class MyTimer(object):
     """Timer object context manager to time process speed"""
     def __init__(self, task_num, total):
@@ -81,16 +95,19 @@ class Beam:
         self.direction = direction
         self.beam_id = randint(111, 999)
         self.ENERGISE_MIRRORS = False        
-        self.history = history
+        self.spawn = None
+        self.history = set()
         self.off_grid = False
         self.width = width
         self.height = height
-        self.grid = grid
-        
+        self.grid = grid      
         self.add_history()
 
     def __str__(self):
         return f"{self.y}|{self.x}|{self.direction}"
+
+    def get_key(self):
+        return (self.y, self.x, self.direction)
 
     def on_mirror_check(self):
         return self.get_tile() in "$/-|"
@@ -98,19 +115,6 @@ class Beam:
     def off_grid_check(self):
         self.off = self.x >= self.width or self.y < 0 or self.y >= self.height or self.x < 0
         return self.off
-
-    def overlap_check(self):
-        overlap = False
-        for h in self.history:
-            
-            if (self.y, self.x, self.get_symbol()) == h[:3]:
-
-                if self.beam_id != h[3]:
-                    overlap = True
-                    break
-
- 
-        return overlap
 
     def go_right(self):
         self.direction = EAST
@@ -131,15 +135,30 @@ class Beam:
     def split_horiz(self):
         self.direction = EAST
         self.x += 1
-        return Beam(self.y, self.x - 2, self.history, WEST, self.width, self.height, self.grid)
+        self.spawn = Beam(self.y, self.x - 2, self.history, WEST, self.width, self.height, self.grid)
 
     def split_vert(self):
         self.direction = NORTH
         self.y -= 1
-        return Beam(self.y + 2, self.x, self.history, SOUTH, self.width, self.height, self.grid)
+        self.spawn = Beam(self.y + 2, self.x, self.history, SOUTH, self.width, self.height, self.grid)
+
+    def end(self):
+
+        return self.history
+
+    def get_spawn(self):
+        spawn = self.spawn
+        self.spawn = None
+        return spawn
     
     def update(self):
-        if self.off_grid_check() or self.overlap_check():   return None
+        
+        
+
+        cached = beam_cache.get((self.y,self.x,self.direction))
+
+        if cached is not None:
+            return cached
 
         changemap = {NORTH:(-1, 0),
                      EAST: (0, 1),
@@ -153,10 +172,8 @@ class Beam:
             self.x += change[1]
 
         else:
-
             new_cell = self.get_tile()            
-
-                   
+            
             if new_cell == "/":
                 new_beam = [self.go_right, self.go_up, self.go_left, self.go_down][self.direction]()
             elif new_cell == "$":
@@ -168,7 +185,6 @@ class Beam:
      
         self.add_history()
         
-        return new_beam
 
     def get_symbol(self):
 
@@ -180,16 +196,16 @@ class Beam:
     def add_history(self):
         if not self.off_grid_check():
             tile = self.get_tile()
-            self.history.add((self.y, self.x, self.get_symbol() if self.ENERGISE_MIRRORS or tile == "." else tile, self.beam_id))
+            self.history.add((self.y, self.x, self.direction, self.get_symbol() if self.ENERGISE_MIRRORS or tile == "." else tile))
 
-def display(beams, history, grid):
+def display(beams, grid):
     s = ""
     trails = [list(row) for row in grid]
     energised = set([his[:2] for his in history])
 
 
     if DEBUG:
-        for y, x, sym , _ in history:
+        for y, x, _ , sym in history:
             trails[y][x] = sym
 
         s = ""
@@ -245,38 +261,62 @@ def remove_none(a):
 def hash_beams(history, beams):
     return hash(str(history)+",".join(str(b) for b in beams if not b.off))
 
+beam_cache = {}
+
 def beam_until_no_change(start_y, start_x, direction, w, h, grid):
     global DEBUG
-    print(f"Beaming rom row {start_y} column {start_x}")
-    history = set()
+    print(f"Beaming from row {start_y} column {start_x}")
+  
     beams = []
-    beams.append(Beam(start_y, start_x, history, direction, w, h, grid))
+    beams.append(Beam(start_y, start_x, None, direction, w, h, grid))
     state_change = True
     energised = set()
     state_record = []
     last = None
 
     max_tiles = w * h
+    energised = 0
 
     while state_change:
         beam_hash = hash_beams(history, beams)
         next_move = cache.get(beam_hash)
 
-        if next_move is None:
-            new_beams = [b.update() for b in beams]
-            beams.extend(filter(remove_none, new_beams))
-            cache[beam_hash] = (beams, history)
-        else:
-            beams, history = cache[beam_hash]
-   
-        state_record.append(display(beams, history, grid))
+        # go through each beam
+        new_beams = []
+        ended_beams = []
+        for beam in beams:
+            # update beam
+            beam.update()
 
+            cache_result = cache.get(beam.get_key())
 
+            if cache_result is not None:
+                print("Beam {beam.beam_id} found in cache.")
+                ended_beams.append(beam)
+                energised += cache_result
+            elif beam.off:
+                print(f"Beam {beam.beam_id} went off grid, so adding to cache")
+                for y, x, direction, _ in beam.history:
+                    cache[(y,x,direction)] = len(beam.history)
+                ended_beams.append(beam)
+                energised += len(beam.history)
+            
+        # spawn new beams
+        beams.extend(new_beams)
+
+        # remove ended beams
+        for removed in ended_beams:
+            beams.remove(removed)
+
+        
+
+        state_record.append(display(beams, grid))
+        
         state_change = len(state_record) < STATE_MIN or len(set(state_record[-STATE_MIN:])) > 1
 
     print(f"results in {state_record[-1]} out of {max_tiles} tiles energised")
 
-    return state_record[-1]
+    return energised
 
 
 def beam_from_perim(y1, y2, x1, x2, direction, total_tasks, w, h, grid):
@@ -300,7 +340,7 @@ def beam_from_perim(y1, y2, x1, x2, direction, total_tasks, w, h, grid):
 def construct_tests(grid):
     results = set()
     W, H = len(grid[0]), len(grid)
-    total_tasks = (W + W + H + H) // 8
+    total_tasks = (W + W + H + H)
     
     final_tests = ((0,      0,      0,      W//2,   EAST, total_tasks, W, H, grid),
                    (0,      0,      W//2,   W,      EAST, total_tasks, W, H, grid),
@@ -312,11 +352,22 @@ def construct_tests(grid):
                    (H//2,   H,      W-1,    W-1,    NORTH, total_tasks, W, H, grid))
 
     
-    print("Starting a pool party...")
-    with multiprocessing.Pool() as pool:
-        for result in pool.starmap(beam_from_perim, final_tests):
-            results |= result
-    print("The pool party's over!!!")
+    for x in range(W):
+        for y in range(H):
+            for direction in range(4):
+                beam_cache[(y,x,direction)] = None
+                
+
+    for y1, y2, x1, x2, direction, total_tasks, W, H, grid in final_tests:
+        results |= beam_from_perim(y1, y2, x1, x2, direction, total_tasks, W, H, grid)
+
+
+    # abandoned multiprocessing
+##    print("Starting a pool party...")
+##    with multiprocessing.Pool() as pool:
+##        for result in pool.starmap(beam_from_perim, final_tests):
+##            results |= result
+##    print("The pool party's over!!!")
 
     return max(results)
     
