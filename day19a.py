@@ -37,8 +37,6 @@ def solve(data):
     part_mode = False
     parts = []
     for row in data:
-        
-        
         if not row:
             part_mode = True
             continue
@@ -47,10 +45,8 @@ def solve(data):
             for val in "xmas":
                 row = row.replace(val+"=", f'"{val}":')
             parts.append(eval(row, g))
-
         else:
             name, body  = row.split("{")
-
             expression = "lambda x,m,a,s:"
             conditions = body[:-1].split(",")
             
@@ -68,28 +64,14 @@ def solve(data):
             print(name, "=", expression)
             workflows[f"{name}"] = eval(expression, g)
             print(workflows)
-
-
-    accepted = 0
-    rejected = 0
-    
     
     workflows['A'] = lambda x,m,a,s: True
     workflows['R'] = lambda x,m,a,s: False
 
     for part in parts:
         if workflows['in'](**part):
-            this_rating = sum(part.values())
-     
+            this_rating = sum(part.values())     
             ratings += this_rating
-
-
-        
-
-        
-
-        
-    
 
     return ratings
 

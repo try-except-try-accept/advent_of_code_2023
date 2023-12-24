@@ -48,7 +48,7 @@ GO_RIGHT = (0, 1)
 
 
 debug = False
-height, width = None, None
+height, width = 0, 0
 PIPES = "|-LJ7F.S"
 
 NEIGH_COMBS = {

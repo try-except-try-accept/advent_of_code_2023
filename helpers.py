@@ -1,6 +1,7 @@
 from re import search, match, findall
 from collections import Counter
-
+from pyproj import Geod
+from shapely import wkt
 
 GREEDY = "\[.+\]" # greedily match anything between [ and ]
 LAZY = "\[.+?\]"  # lazily match anything between [ and ]
@@ -70,7 +71,22 @@ def create_graph(self, data, sep_node, sep_conns, weight_format=None):
             node.add_connection(neighbour)
 
     return graph
-        
+
+
+
+def calculate_polygon_area(points):
+    # specify a named ellipsoid
+    geod = Geod(ellps="WGS84")
+
+    pts_str = ", ".join([f"{x} {y}" for x, y in points])
+
+    poly = wkt.loads(f'''\
+    POLYGON (({pts_str}))''')
+
+    area = abs(geod.geometry_area_perimeter(poly)[0])
+
+    print('# Geodesic area: {:.3f} m^2'.format(area))
+    return poly.area
 
 class PuzzleHelper:
 
@@ -95,7 +111,7 @@ class PuzzleHelper:
 
     def load_puzzle(self):
         with open(f"day{self.day}.txt") as f:
-            data = f.read()
+            data = f.read().replace("\\", "$")
 
         return data
 

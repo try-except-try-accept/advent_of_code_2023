@@ -34,7 +34,9 @@ expansion_rate = 10
 DEBUG = False
 
 
+
 def rotate(data):
+    global width, height
 
     new = [[] for i in range(len(data[0]))]
 

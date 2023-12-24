@@ -138,23 +138,17 @@ def display(grid, beams, h, w, history):
     trails = [list(row) for row in grid]
     energised = set([his[:2] for his in history])
     p.bugprint()
-
     if DEBUG:
-
         for y, x, sym in history:
             trails[y][x] = sym
-
         s = ""
         for row in trails:
             s += ("".join(row)) + "\n"
-
         print(s[:DISPLAY_CUTOFF])
         input()
-
     return len(energised)
 
 def solve(data):
-    p
     count = 0
     height = len(data)
     width = len(data[0])
