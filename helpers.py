@@ -2,37 +2,67 @@ from re import search, match, findall
 from collections import Counter
 from pyproj import Geod
 from shapely import wkt
+import networkx as nx 
+import matplotlib.pyplot as plt 
 
 GREEDY = "\[.+\]" # greedily match anything between [ and ]
 LAZY = "\[.+?\]"  # lazily match anything between [ and ]
 
 class Node:
-    def __init__(self, data):
+    def __init__(self, data, extra=None):
         self.data = data
-        self.connections = set()
+        self.connections = {}
+        self.extra = extra
 
-    def add_connection(self, neighbour, weight):
-        self.connections.add((neighbour, weight))
+    def __str__(self):
+        return f"node {self.data}"
 
-    def find_path_to(self, target, backtrack=0):        
-        explore = [self]
+    def add_connection(self, neighbour, weight=0):
+        self.connections[neighbour.data] = (neighbour, weight)
+
+    def remove_connection(self, neighbour):
+        try:
+            del self.connections[neighbour.label]
+            print(f"Removed connection between {self} and {neighbour}")
+            return True
+        except ValueError:
+            print(f"Could not remove: did not find {neighbour} in {self}'s connections.")
+            return False
+        
+    def find_path_to(self, target, visits=1, loop_back=False, dfs=True):        
+        explore = [{"path":[self], "cost":0}]
         visited = Counter()
         cost = 0
-        path = [0]
+
+
         # while somewhere left to explore and haven't reached target
-        while len(explore) and node != target:
+        while len(explore):
             # next node to explore
-            node, weight = explore.pop(0)           
+            path_data = explore.pop(0)
 
+            path = path_data["path"]
+            cost = path_data["cost"]
+            
+            node = path[-1]
+            visited[str(node)] += 1
+   
+            if node == target:
+                if loop_back:
+                    loop_back = False
+                else:
+                    return path, cost
+   
             # count neighbours to visit
-            poss_paths = 0
-            for neighbour in connections:                
-                if visited[neighbour] < backtrack:
-                    explore.append(neighbour)
-                    poss_paths += 1
 
-            # if has neighbours, add weight
-            path.append(weight)
+            found_path = False
+            for neighbour, weight in node.connections.values(): 
+                if visited[str(neighbour)] < visits or (neighbour == target and len(path) > 2):
+                    explore.insert(0 if dfs else -1, {"path":path + [neighbour], "cost":cost+weight})
+                    found_path = True
+        
+        return None
+            
+        
                 
             
                 
@@ -43,23 +73,24 @@ class Node:
                          
 
 
-def get_or_make_node(key, graph):
+def get_or_make_node(key, graph, extra=None):
     node = graph.get(key)
     if node is None:
-        node = Node(key)
+        node = Node(key, extra)
         graph[key] = node
     return node
 
 def alphanum_only(data):
     return "".join(d for d in data if d.isalpha() or d.isdigit())
 
-def create_graph(self, data, sep_node, sep_conns, weight_format=None):
+def create_graph(data, sep_node, sep_conns, weight_format=None, undirectional=True):
+    ## TO DO, implement weighted graphs later
     
     graph = {}
     
     for row in data:
         root, conns = row.split(sep_node)
-        conns = conns.split(sep_cons)
+        conns = conns.split(sep_conns)
 
         node = get_or_make_node(alphanum_only(root), graph)
         for c in conns:
@@ -67,8 +98,10 @@ def create_graph(self, data, sep_node, sep_conns, weight_format=None):
             if weight_format:
                 weight = search(weight_format, c).group()
             
-            neighbour = get_or_make_node(alphanum_only(c), graph, weight)
+            neighbour = get_or_make_node(alphanum_only(c), graph)
             node.add_connection(neighbour)
+            if undirectional:
+                neighbour.add_connection(node)
 
     return graph
 
